@@ -1,0 +1,29 @@
+{
+  "name": "discord-voice-notify",
+  "version": "1.0.0",
+  "description": "Discord bot for voice channel notifications with subscription management",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "node --watch src/bot.js",
+    "test-setup": "node test-setup.js",
+    "test-dm-modification": "node test-dm-modification.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["discord", "bot", "voice", "notification"],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.2",
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "prisma": "^6.8.2",
+    "winston": "^3.17.0"
+  }
+}

@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Guild {
+  id                String              @id @db.VarChar(20)
+  name              String              @db.VarChar(100)
+  adminRoleId       String?             @db.VarChar(20)
+  customMessage     String              @default("🔊 Users in {channelName}: {userList}") @db.Text
+  maxUsers          Int                 @default(10)
+  maxDisplayUsers   Int                 @default(5)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  monitoredChannels MonitoredChannel[]
+  userSubscriptions UserSubscription[]
+  notificationStates NotificationState[]
+  channelSessions   ChannelSession[]
+  
+  @@map("guilds")
+}
+
+model MonitoredChannel {
+  id                String              @id @default(cuid())
+  guildId           String              @db.VarChar(20)
+  channelId         String              @db.VarChar(20)
+  channelName       String              @db.VarChar(100)
+  emoji             String              @db.VarChar(50)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  guild             Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  userSubscriptions UserSubscription[]
+  notificationStates NotificationState[]
+  channelSessions   ChannelSession[]
+  
+  @@unique([guildId, channelId])
+  @@map("monitored_channels")
+}
+
+model UserSubscription {
+  id                String              @id @default(cuid())
+  guildId           String              @db.VarChar(20)
+  userId            String              @db.VarChar(20)
+  channelId         String              @db.VarChar(20)
+  createdAt         DateTime            @default(now())
+  
+  guild             Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  monitoredChannel  MonitoredChannel    @relation(fields: [channelId, guildId], references: [channelId, guildId], onDelete: Cascade)
+  
+  @@unique([guildId, userId, channelId])
+  @@map("user_subscriptions")
+}
+
+model NotificationState {
+  id                String              @id @default(cuid())
+  guildId           String              @db.VarChar(20)
+  channelId         String              @db.VarChar(20)
+  userId            String              @db.VarChar(20)
+  messageId         String              @db.VarChar(20)
+  sessionId         String              @db.VarChar(50)
+  isActive          Boolean             @default(true)
+  userList          Json?
+  lastUpdated       DateTime            @default(now())
+  createdAt         DateTime            @default(now())
+  
+  guild             Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  monitoredChannel  MonitoredChannel    @relation(fields: [channelId, guildId], references: [channelId, guildId], onDelete: Cascade)
+  channelSession    ChannelSession      @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  
+  @@unique([guildId, channelId, userId, sessionId])
+  @@map("notification_states")
+}
+
+model ChannelSession {
+  id                String              @id @default(cuid())
+  guildId           String              @db.VarChar(20)
+  channelId         String              @db.VarChar(20)
+  sessionId         String              @unique @db.VarChar(50)
+  isActive          Boolean             @default(true)
+  startedAt         DateTime            @default(now())
+  endedAt           DateTime?
+  
+  guild             Guild               @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  monitoredChannel  MonitoredChannel    @relation(fields: [channelId, guildId], references: [channelId, guildId], onDelete: Cascade)
+  notificationStates NotificationState[]
+  
+  @@map("channel_sessions")
+}
